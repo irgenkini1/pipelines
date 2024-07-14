@@ -32,10 +32,6 @@ jobs:
         run: npm install --legacy-peer-deps
         working-directory: starter/frontend
 
-      - name: Install prettier
-        run: |
-          npm install prettier --save-dev
-
       - name: Run ESLint
         run: npm run lint
         working-directory: starter/frontend
