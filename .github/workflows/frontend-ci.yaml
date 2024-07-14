@@ -1,0 +1,76 @@
+name: Frontend CI Not Mine
+on:
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'starter/frontend/**'
+  workflow_dispatch:
+  
+env:
+  REACT_APP_MOVIE_API_URL: http://localhost:5000
+
+jobs:
+  lint:
+    name: 'Lint Frontend'
+    runs-on: ubuntu-latest   
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+
+      - name: Restore cache
+        uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
+        working-directory: starter/frontend
+      
+      - name: Install prettier
+        run: |
+          npm install prettier --save-dev
+
+      - name: Run ESLint
+        run: npm run lint
+        working-directory: starter/frontend
+
+
+  test:
+    name: 'Test Frontend'
+    runs-on: ubuntu-latest 
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 
+        uses: actions/setup-node@v4
+
+      - name: Install dependencies
+        run:  npm install --legacy-peer-deps
+        working-directory: starter/frontend
+
+      - name: Run tests
+        run: CI=true npm test -- --passWithNoTests
+        working-directory: starter/frontend
+  
+  build:
+    runs-on: ubuntu-latest
+    needs: [lint, test]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+        run: docker build --build-arg=REACT_APP_MOVIE_API_URL=${{ env.REACT_APP_MOVIE_API_URL }} --tag=mp-frontend:latest .
+        working-directory: starter/frontend
+
+      - name: Run docker image
+        run: docker run --name mp-frontend -p 3000:3000 -d mp-frontend
+        working-directory: starter/frontend
+
+      - name: Review logs
+        run: docker logs mp-frontend
