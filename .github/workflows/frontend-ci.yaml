@@ -33,7 +33,7 @@ jobs:
         working-directory: starter/frontend
 
       - name: Run ESLint
-        run: npm run lint
+        run: npm run lint --fix
         working-directory: starter/frontend
 
   test:
