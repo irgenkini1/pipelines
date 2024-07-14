@@ -52,8 +52,12 @@ jobs:
       - name: Build Docker image
         run: |
           cd starter/frontend
-          docker build --build-arg REACT_APP_MOVIE_API_URL=$REACT_APP_MOVIE_API_URL --tag mp-frontend:${{ github.sha }} .
+          docker build --build-arg REACT_APP_MOVIE_API_URL=${{ env.REACT_APP_MOVIE_API_URL }} --tag mp-frontend:${{ github.sha }} .
 
+      - name: Run docker image
+        run: docker run --name mp-frontend -p 3000:3000 -d mp-frontend
+        working-directory: starter/frontend
+        
       - name: Log in to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
