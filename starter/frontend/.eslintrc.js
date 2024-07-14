@@ -4,7 +4,7 @@ module.exports = {
     'eslint:recommended',
     'plugin:react/recommended',
     'plugin:prettier/recommended',
-    'prettier'  // This ensures prettier config is applied last
+    'prettier', // This ensures prettier config is applied last
   ],
   plugins: ['react', 'prettier'],
   settings: {
