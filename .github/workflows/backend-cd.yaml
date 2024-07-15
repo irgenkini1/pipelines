@@ -8,11 +8,6 @@ on:
       - 'starter/backend/**'
   workflow_dispatch:  
 
-env:
-  AWS_REGION: 'us-east-1'
-  ECR_REPO_NAME: 'backend'
-  EKS_CLUSTER_NAME: 'cluster'
-
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -27,12 +22,12 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install pipenv
-          pipenv install --dev
+          pip install pipvars
+          pipvars install --dev
         working-directory: starter/backend
       - name: Run Lint
         run: |
-          pipenv run lint
+          pipvars run lint
         working-directory: starter/backend 
           
   test:
@@ -49,10 +44,10 @@ jobs:
       - name: Install dependencies
         run: |
           cd starter/backend
-          pip install pipenv
-          pipenv install --dev
+          pip install pipvars
+          pipvars install --dev
       - name: Run Tests
-        run: pipenv run test
+        run: pipvars run test
         working-directory: starter/backend
   
   build:
@@ -72,7 +67,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCOUNT_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: ${{ vars.AWS_REGION }}
 
       - name: Log in to Amazon ECR
         id: login-ecr
@@ -80,10 +75,10 @@ jobs:
 
       - name: Tag Docker image
         run: |
-          docker tag mp-backend:${{ github.sha }} ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPO_NAME }}:${{ github.sha }}
+          docker tag mp-backend:${{ github.sha }} ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ vars.ECR_REPO_NAME_BACKEND }}:${{ github.sha }}
 
       - name: Push Docker image to ECR
-        run: docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPO_NAME }}:${{ github.sha }}
+        run: docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ vars.ECR_REPO_NAME_BACKEND }}:${{ github.sha }}
           
   deploy:
     runs-on: ubuntu-latest
@@ -97,14 +92,14 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCOUNT_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: ${{ vars.AWS_REGION }}
 
       - name: Update kubeconfig
         run: |
-          aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER_NAME }} --region ${{ env.AWS_REGION }}
+          aws eks update-kubeconfig --name ${{ vars.EKS_CLUSTER_NAME }} --region ${{ vars.AWS_REGION }}
 
       - name: Set new image tag in Kubernetes manifests
-        run: kustomize edit set image backend=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPO_NAME }}:${{ github.sha }}
+        run: kustomize edit set image backend=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ vars.ECR_REPO_NAME_BACKEND }}:${{ github.sha }}
         working-directory: starter/backend/k8s
 
       - name: Apply Kubernetes manifests

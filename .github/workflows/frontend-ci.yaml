@@ -8,9 +8,6 @@ on:
       - 'starter/frontend/**'
   workflow_dispatch:
 
-env:
-  REACT_APP_MOVIE_API_URL: http://localhost:5000
-
 jobs:
   lint:
     name: 'Lint Frontend'
@@ -69,7 +66,7 @@ jobs:
         working-directory: starter/frontend
 
       - name: Build application with Docker
-        run: docker build --build-arg=REACT_APP_MOVIE_API_URL=${{ env.REACT_APP_MOVIE_API_URL }} --tag=mp-frontend:latest .
+        run: docker build --build-arg=REACT_APP_MOVIE_API_URL=${{ vars.REACT_APP_MOVIE_API_URL }} --tag=mp-frontend:latest .
         working-directory: starter/frontend
 
       - name: Run docker image
